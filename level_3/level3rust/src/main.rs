@@ -3,10 +3,11 @@ use std::io::{Read, Write};
 fn main() -> std::io::Result<()> {
 	let (infile_content, mut outfile) = setup()?;
 	for line in infile_content.lines().skip(1) {
-		let mut trip = line
+		let mut distance = line
 			.split_whitespace()
-			.map(|elem| elem.parse::<i32>().unwrap());
-		let (mut distance, mut _target_time) = (trip.clone().next().unwrap(), trip.nth(1).unwrap());
+			.map(|elem| elem.parse::<i32>().unwrap())
+			.next()
+			.unwrap();
 		let direction = if distance > 0 { 1 } else { -1 };
 		let mut sequence = vec![0];
 		let mut speed: i32 = direction * 5;

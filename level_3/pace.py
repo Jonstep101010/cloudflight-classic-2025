@@ -6,7 +6,6 @@ with open(sys.argv[1]) as input:
     for i in range(0, num_paces):
         trip = input.readline().split(" ")
         distance = int(trip[0])
-        target_time = int(trip[1])
         if distance > 0:
             direction = 1
         else:
@@ -27,7 +26,6 @@ with open(sys.argv[1]) as input:
                 break
             if abs(speed) != 1 and abs(distance) - 1 >= 2:
                 speed -= direction * 1
-            target_time -= abs(speed)
             distance -= direction * 1
             time_to_slowdown = abs(5 - abs(speed))
             sequence.append(speed)
