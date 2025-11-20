@@ -1,0 +1,87 @@
+use std::io::{Read, Write};
+
+fn main() -> std::io::Result<()> {
+	let (infile_content, mut outfile) = setup()?;
+	for line in infile_content.lines().skip(1) {
+		let mut trip = line
+			.split_whitespace()
+			.map(|elem| elem.parse::<i32>().unwrap());
+		let (mut distance, mut _target_time) = (trip.clone().next().unwrap(), trip.nth(1).unwrap());
+		let direction = if distance > 0 { 1 } else { -1 };
+		let mut sequence = vec![0];
+		let mut speed: i32 = direction * 5;
+		let mut time_to_slowdown = 0;
+		while distance.abs() != time_to_slowdown {
+			sequence.push(speed);
+			distance -= direction;
+			if speed.abs() != 1 && distance.abs() > time_to_slowdown {
+				speed -= direction;
+			}
+			time_to_slowdown = (5 - speed.abs()).abs();
+		}
+		while speed.abs() != 5 {
+			speed += direction;
+			sequence.push(speed);
+		}
+		sequence.push(0);
+		dump_vec_to_file(&mut outfile, sequence);
+	}
+	Ok(())
+}
+
+fn setup() -> Result<(String, std::fs::File), std::io::Error> {
+	let filename: String = std::env::args().nth(1).expect("outfile to be provided");
+	let mut infile = std::fs::File::open(format!("../{filename}")).expect("file not found");
+	let mut str = String::new();
+	infile.read_to_string(&mut str).expect("read failed!");
+	let outfilename = filename.strip_suffix(".in").unwrap().to_owned() + ".out";
+	let outfile = std::fs::File::create(outfilename)?;
+	Ok((str, outfile))
+}
+
+fn dump_vec_to_file(outfile: &mut std::fs::File, sequence: Vec<i32>) {
+	let mut printseq = String::new();
+	sequence.iter().for_each(|elem| {
+		printseq.push(' ');
+		printseq.push_str(&elem.to_string());
+	});
+	writeln!(outfile, "{}", printseq.trim_start()).unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+	use rstest::rstest;
+
+	#[rstest]
+	#[case("level3_0_example.in")]
+	#[case("level3_1_small.in")]
+	#[case("level3_2_large.in")]
+	#[case("level3_0_bug.in")]
+	#[case("level3_1_bug.in")]
+	fn level_3(#[case] input_file: &str) {
+		// Run the program
+		let output = std::process::Command::new("cargo")
+			.arg("run")
+			.arg("--")
+			.arg(input_file)
+			.output()
+			.expect("failed to run cargo");
+		assert!(output.status.success(), "program execution failed");
+
+		// Compare output file with expected
+		let out_filename = input_file.strip_suffix(".in").unwrap().to_string() + ".out";
+		let generated_out =
+			std::fs::read_to_string(&out_filename).expect("failed to read generated output");
+		let expected_out = std::fs::read_to_string(format!("../{}", out_filename))
+			.expect("failed to read expected output");
+
+		assert_eq!(
+			generated_out, expected_out,
+			"output mismatch for {}",
+			input_file
+		);
+
+		// Cleanup
+		std::fs::remove_file(&out_filename).ok();
+	}
+}

@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+    "level_4/level4rust",
+    "level_1/level1rust",
+    "level_2/level2rust",
+    "level_3/level3rust",
+]
